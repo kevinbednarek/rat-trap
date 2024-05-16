@@ -1,14 +1,15 @@
 use std::error;
 use std::mem::replace;
+use rand::Rng;
 
-/// Application result type.
-pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
+pub type AppResult<T> = Result<T, Box<dyn error::Error>>;
 
 #[derive(Debug)]
 pub struct App {
     pub running: bool,
     pub word: String,
     pub hint: String,
+    pub hint_display: bool,
     pub guesses: Vec<String>,
     pub strikes: u8,
     pub game: Vec<String>, //This is to keep track of the actual guesses from the player
@@ -23,6 +24,7 @@ impl App {
             running: true,
             word: "".to_string(),
             hint: "".to_string(),
+            hint_display: false,
             guesses: init_guesses(),
             strikes: 0,
             game: vec![],
@@ -30,7 +32,7 @@ impl App {
             game_result: None,
         };
 
-        init_word(&mut app);
+        init_word_and_hint(&mut app);
 
         app
     }
@@ -50,7 +52,7 @@ impl App {
                 let mut indices = Vec::new();
 
                 for character in self.word.chars().enumerate() {
-                    if character.1 == c {
+                    if character.1.to_ascii_uppercase() == c.to_ascii_uppercase() {
                         indices.push(character.0);
                     }
                 }
@@ -61,16 +63,12 @@ impl App {
                 }
 
                 if self.correct_answers.len() == self.word.len() {
-                    //TODO: Do a winning sequence
-                    you_win();
                     self.game_result = Some(true);
                 }
             } else {
                 self.strikes += 1;
 
                 if self.strikes == 6 {
-                    //TODO: call method for "you lost" sequence
-                    you_lose();
                     self.game_result = Some(false);
                 }
 
@@ -80,33 +78,34 @@ impl App {
     }
 
     pub fn hint(&mut self) {
-        self.hint = String::from("The best programming language");
+        self.hint_display = !self.hint_display;
     }
 }
 
 /*-------------------------------------- Helper Functions --------------------------------------*/
-pub fn init_word(app: &mut App) {
-    app.word = String::from("rust");
-    //TODO: create list of words
-    //TODO: pick a random number, use the number as the index and return the word that corresponds to the index
+fn init_word_and_hint(app: &mut App) {
+    let word_list = vec![
+        (String::from("Rust"), String::from("The best programming language")),
+        (String::from("Ratatui"), String::from("A Rust library for cooking up delicious TUIs")),
+        (String::from("HashMap"), String::from("A data structure that holds key/value pairs")),
+        //TODO: Add more words and hints
+    ];
 
-    //app.game = vec![emojis::get("🦀").unwrap().to_string(); app.word.len()];
+    let mut rng = rand::thread_rng();
+    let rnd_num = rng.gen_range(0..word_list.len());
+
+    let word_hint_pair = word_list.get(rnd_num);
+    app.word = word_hint_pair.unwrap().clone().0;
+    app.hint = word_hint_pair.unwrap().clone().1;
+
+
+    //app.word = String::from("rust");
+    //app.hint = String::from("The best programming language");
+
     app.game = vec![String::from("-"); app.word.len()];
 }
 
-pub fn you_lose() {
-    //TODO: Draw the last piece of the rat trap / hangman guy
-
-    //TODO: Do a popup showing answer and asking if you want to play again
-}
-
-pub fn you_win() {
-    //TODO: Draw some animation?
-
-    //TODO: Do a popup showing answer and asking if you want to play again
-}
-
-pub fn init_guesses() -> Vec<String> {
+fn init_guesses() -> Vec<String> {
     vec![
         String::from("A"),
         String::from(" "),

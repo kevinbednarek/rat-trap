@@ -1,11 +1,16 @@
+use crossterm::event::{KeyCode, KeyEvent};
 use crate::app::{App, AppResult};
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 /// Handles the key events and updates the state of [`App`].
 pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
     match key_event.code {
         KeyCode::Esc => app.quit(),
-        KeyCode::Char(char) => app.draw_char_guess(char),
+        KeyCode::Char(char) => {
+            match app.game_result {
+                None => app.draw_char_guess(char),
+                _ => {}
+            }
+        },
         KeyCode::Enter => app.hint(),
         _ => {}
     }
