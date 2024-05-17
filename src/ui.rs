@@ -5,15 +5,11 @@ use ratatui::{
     Frame,
 };
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::prelude::{Buffer, Marker};
 use ratatui::text::{Line, Span, Text};
 use crate::app::App;
 
-/// Renders the user interface widgets.
 pub fn render(app: &mut App, frame: &mut Frame) {
-    // This is where you add new widgets.
-    // See the following resources:
-    // - https://docs.rs/ratatui/latest/ratatui/widgets/index.html
-    // - https://github.com/ratatui-org/ratatui/tree/master/examples
     let sections = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -25,10 +21,9 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .split(frame.size());
 
     frame.render_widget(
-        Paragraph::new(format!("Press `Esc` to quit\n\
-                Press `Enter` for a hint\n\
-                Word: {}\n\
-                Strikes: {}", app.word, app.strikes)
+        Paragraph::new(format!("`Enter` for hint | `Esc` to quit\n\
+                Guess incorrectly 6 times and you lose!\n\
+                Incorrect guesses: {}", app.strikes)
         )
         .block(
             Block::bordered()
@@ -101,9 +96,20 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         }
         _ => {}
     }
+
+    match app.strikes {
+        1 => {/*TODO: Draw something*/}
+        2 => {/*TODO: Draw something*/}
+        3 => {/*TODO: Draw something*/}
+        4 => {/*TODO: Draw something*/}
+        5 => {/*TODO: Draw something*/}
+        6 => {/*TODO: Draw last thing*/}
+        _ => {}
+
+    }
 }
 
-// Helper function to create a centered rect using up certain percentage of the available rect `r`
+//Helper function for popup
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::vertical([
         Constraint::Percentage((100 - percent_y) / 2),
@@ -118,4 +124,94 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         Constraint::Percentage((100 - percent_x) / 2),
     ])
         .split(popup_layout[1])[1]
+}
+
+
+/*fn draw_something(x: f64, y: f64) -> impl Widget + '_ {
+    Canvas::default()
+        .block(Block::default().borders(Borders::ALL).title("World"))
+        .marker(self.marker)
+        .paint(|ctx| {
+            ctx.draw(&Map {
+                color: Color::Green,
+                resolution: MapResolution::High,
+            });
+            ctx.print(self.x, -self.y, "You are here".yellow());
+        })
+        .x_bounds([-180.0, 180.0])
+        .y_bounds([-90.0, 90.0])
+}*/
+
+fn draw_map()  {
+    let mut buffer = Buffer::empty(Rect::new(0, 0, 80, 40));
+    let canvas = Canvas::default()
+        .marker(Marker::Braille)
+        .x_bounds([-180.0, 180.0])
+        .y_bounds([-90.0, 90.0])
+        .paint(|context| {
+            context.draw(&Map {
+                resolution: MapResolution::High,
+                ..Default::default()
+            });
+        });
+    canvas.render(buffer.area, &mut buffer);
+}
+
+
+fn draw_high() {
+    let mut buffer = Buffer::empty(Rect::new(0, 0, 80, 40));
+    let canvas = Canvas::default()
+        .marker(Marker::Braille)
+        .x_bounds([-180.0, 180.0])
+        .y_bounds([-90.0, 90.0])
+        .paint(|context| {
+            context.draw(&Map {
+                resolution: MapResolution::High,
+                ..Default::default()
+            });
+        });
+    canvas.render(buffer.area, &mut buffer);
+    let expected = Buffer::with_lines([
+        "                                                                                ",
+        "                  ⢀⣠⠤⠤⠤⠔⢤⣤⡄⠤⡠⣄⠢⠂⢢⠰⣠⡄⣀⡀                      ⣀                   ",
+        "            ⢀⣀⡤⣦⠲⢶⣿⣮⣿⡉⣰⢶⢏⡂        ⢀⣟⠁     ⢺⣻⢿⠏   ⠈⠉⠁ ⢀⣀    ⠈⠓⢳⣢⣂⡀               ",
+        "            ⡞⣳⣿⣻⡧⣷⣿⣿⢿⢿⣧⡀⠉⠉⠙⢆      ⣰⠇               ⣠⠞⠃⢉⣄⣀⣠⠴⠊⠉⠁ ⠐⠾⠤⢤⠤⡄⠐⣻⠜⢓⠂      ",
+        "⢍ ⢀⡴⠊⠙⠓⠒⠒⠤⠖⠺⠿⠽⣷⣬⢬⣾⣷⢻⣷⢲⢲⣍⠱⡀ ⠹⡗   ⢀⢐⠟        ⡔⠒⠉⠲⠤⢀⢄⡀⢩⣣⠦⢷⢼⡏⠈          ⠉⠉⠉ ⠈⠈⠉⠖⠤⠆⠒⠭",
+        "⠶⢽⡲⣽⡆             ⠈⣠⣽⣯⡼⢯⣘⡯⠃⠘⡆ ⢰⠒⠁ ⢾⣚⠟    ⢀⠆ ⣔⠆ ⢷⠾⠋⠁    ⠙⠁                     ⠠⡤",
+        "  ⠠⢧⣄⣀⡶⠦⠤⡀        ⢰⡁ ⠉⡻⠙⣎⡥  ⠘⠲⠇       ⢀⡀⠨⣁⡄⣸⢫⡤⠄                        ⣀⢠⣤⠊⣼⠅⠖⠋⠁",
+        "   ⣠⠾⠛⠁  ⠈⣱        ⠋⠦⢤⡼ ⠈⠈⠦⡀         ⢀⣿⣇ ⢹⣷⣂⡞⠃                       ⢀⣂⡀  ⠏⣜    ",
+        "          ⠙⣷⡄        ⠘⠆ ⢀⣀⡠⣗         ⠘⣻⣽⡟⠉⠈                           ⢹⡇  ⠟⠁    ",
+        "           ⠈⡟           ⢎⣻⡿⠾⠇         ⠘⠇  ⣀⡀  ⣤⣤⡆ ⡠⡦                 ⢀⠎⡏        ",
+        "            ⡇          ⣀⠏⠋           ⢸⠒⢃⡖⢻⢟⣷⣄⣰⣡⠥⣱ ⢏⣧              ⣀ ⡴⠚⢰⠟        ",
+        "            ⢳         ⢸⠃             ⠸⣄⣼⣠⢼⡴⡟⢿⢿⣀⣄  ⠸⡹             ⠘⡯⢿⡇⡠⢼⠁        ",
+        "             ⢳⣀      ⢀⠞⠁             ⢠⠋⠁ ⠐⠧⡄⣬⣉⣈⡽                  ⢧⠘⢽⠟⠉         ",
+        "              ⣿⣄  ⡴⠚⠛⣿⣀             ⢠⠖     ⠈⠁ ⠹⣧  ⢾⣄⡀             ⡼ ⠈           ",
+        "    ⣀         ⠘⣿⡄ ⡇  ⣘⣻             ⡏          ⢻⡄ ⠘⠿⢿⠒⠲⡀   ⢀⡀   ⢀⡰⣗             ",
+        "    ⠉⠷          ⢫⡀⢧⡼⡟⠉⣛⣳⣦⡀         ⠈⡇          ⠸⣱  ⢀⡼  ⢺  ⡸⠉⢇  ⣾⡏ ⣁             ",
+        "                 ⠉⠒⢆⡓⡆             ⠠⡃           ⢳⣇⡠⠏   ⠐⡄⡞  ⠘⣇⡀⢱  ⣾⡀            ",
+        "                    ⢹⣇⣀⣾⡷⠤⡆         ⢣            ⠯⢺⠇    ⢣⣅   ⣽⢱⡔ ⢠⢿⣗            ",
+        "                     ⠙⢱   ⠘⠦⡄       ⠈⢦⡠⣠⢶⣀        ⡜     ⠈⠿  ⢠⣽⢆ ⢀⣼⡜⠿            ",
+        "                     ⢀⡞     ⢱⡀           ⢸       ⡔⠁          ⢻⢿⢰⠏⢸⣤⣴⣆           ",
+        "                     ⢘⠆      ⠙⠢⢄         ⠸⡀     ⡸⠁           ⠈⣞⡎⠥⡟⣿⠠⠿⣷⠒⢤⢀⣆      ",
+        "                     ⠘⠆        ⢈⠂         ⢳     ⡇             ⠈⠳⠶⣤⣭⣠ ⠋⢧⡬⣟⠉⠷⡄    ",
+        "                      ⢨        ⡜          ⢸     ⠸ ⣠               ⠁⢁⣰⢶ ⡇⠉⠁ ⠛    ",
+        "⠆                     ⠈⢱⡀      ⡆          ⡇    ⢀⡜⡴⢹               ⢰⠏⠁⠘⢶⠹⡀   ⠸ ⢠⡶",
+        "                        ⠅     ⣸           ⢸    ⢫ ⡞⡊             ⢠⠔⠋     ⢳⡀ ⠐⣦   ",
+        "                        ⡅    ⡏            ⠈⡆  ⢠⠎ ⠳⠃             ⢸        ⢳      ",
+        "                       ⠨    ⡸⠁             ⢱  ⡸                 ⠈⡇ ⢀⣀⡀   ⢸      ",
+        "                       ⠸  ⠐⡶⠁              ⠘⠖⠚                   ⠣⠒⠋ ⠱⣇ ⢀⠇   ⠰⡄ ",
+        "                       ⠽ ⣰⡖⠁                                          ⠘⢚⡊    ⢀⣿⠇",
+        "                       ⡯⢀⡟                                             ⠘⠏   ⢠⢾⠃ ",
+        "                       ⠇⢨⠆                            ⢠⡄                    ⠈⠁  ",
+        "                       ⢧⣷⡀⠚                                                     ",
+        "                        ⠉⠁                                                      ",
+        "                          ⢀⡀                                                    ",
+        "                        ⢠⡾⠋                      ⣀⡠⠖⢦⣀⣀  ⣀⠤⠦⢤⠤⠶⠤⠖⠦⠤⠤⠤⠴⠤⢤⣄       ",
+        "                ⢀⣤⣀ ⡀  ⣼⣻⠙⡆         ⢀⡤⠤⠤⠴⠒⠖⠒⠒⠒⠚⠉⠋⠁    ⢰⡳⠊⠁              ⠈⠉⠉⠒⠤⣤  ",
+        "    ⢀⣀⣀⡴⠖⠒⠒⠚⠛⠛⠛⠒⠚⠳⠉⠉⠉⠉⢉⣉⡥⠔⠃     ⢀⣠⠤⠴⠃                                      ⢠⠞⠁  ",
+        "   ⠘⠛⣓⣒⠆              ⠸⠥⣀⣤⡦⠠⣞⣭⣇⣘⠿⠆                                         ⣖⠛   ",
+        "⠶⠔⠲⠤⠠⠜⢗⠤⠄                 ⠘⠉  ⠁                                            ⠈⠉⠒⠔⠤",
+        "                                                                                ",
+    ]);
+    assert_eq!(buffer, expected);
 }
