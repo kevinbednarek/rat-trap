@@ -1,6 +1,7 @@
-use ratatui::{layout::Alignment, style::{Color, Style, Stylize}, widgets::{*}, Frame, text};
+use ratatui::{layout::Alignment, style::{Color, Style, Stylize as OtherStylize}, widgets::{*}, Frame, text};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::text::{Span, Text};
+use tui_big_text::{BigText, PixelSize};
 use crate::app::App;
 
 pub fn render(app: &mut App, frame: &mut Frame) {
@@ -8,7 +9,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(5),
-            Constraint::Min(1),
+            Constraint::Min(5),
             Constraint::Length(3),
             Constraint::Length(3),
             Constraint::Length(3),
@@ -16,14 +17,13 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .split(frame.size());
 
     let game_area = Layout::horizontal([
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
-        Constraint::Min(1),
+        Constraint::Min(16),
+        Constraint::Min(16),
+        Constraint::Min(16),
+        Constraint::Min(16),
+        Constraint::Min(16),
+        Constraint::Min(16),
+        Constraint::Min(32),
     ])
         .split(sections[1]);
 
@@ -51,12 +51,10 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         render_hint(&*app.hint, sections[2], frame);
     }
 
-
-
+    //Render trap
     draw_trap(game_area[6], frame);
-    //TODO: Calculate which rat to use based on how much space (height) there is to work with
-    let rat_space = sections[1].height;
 
+    //Render rat
     match app.strikes {
         0 => draw_rat(game_area[0], frame),
         1 => draw_rat(game_area[1], frame),
@@ -134,35 +132,58 @@ fn render_hint(hint: &str, r: Rect, frame: &mut Frame) {
 }
 
 fn render_game_result(game_result: Option<bool>, word: &String, frame: &mut Frame) {
-    //TODO: Use this for win/lose text --> https://crates.io/crates/tui-big-text
     //TODO: Implement "play again" feature
+    let area = centered_rect(60, 60, frame.size());
+
+    let sections = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Min(3),
+            Constraint::Min(5),
+            Constraint::Min(3),
+        ])
+        .split(area);
+
     match game_result {
         Some(true) => {
-            let area = centered_rect(60, 30, frame.size());
+            let win_text = BigText::builder()
+                .alignment(Alignment::Center)
+                .pixel_size(PixelSize::Quadrant)
+                .lines(vec![
+                    "You Win!".cyan().into(),
+                ])
+                .build().unwrap();
+
             frame.render_widget(Clear, area); // clears out the background
-            frame.render_widget(Paragraph::new(
-                "You Win!\n\
-                Press `Esc` to quit")
-                                    .centered()
-                                    .block(Block::bordered()
-                                        .border_type(BorderType::Rounded)
-                                        .style(Style::default()
-                                            .fg(Color::Cyan)
-                                            .bg(Color::Black))), area);
+            frame.render_widget(Block::bordered()
+                                    .border_type(BorderType::Rounded)
+                                    .style(Style::default()
+                                        .fg(Color::Cyan)
+                                        .bg(Color::Black)), area);
+            frame.render_widget(win_text, sections[1]);
+            frame.render_widget(Paragraph::new("Press `Esc` to quit")
+                                    .centered(), sections[2]);
         }
         Some(false) => {
-            let area = centered_rect(60, 30, frame.size());
+            let lose_text = BigText::builder()
+                .alignment(Alignment::Center)
+                .pixel_size(PixelSize::Quadrant)
+                .lines(vec![
+                    "You Lose!".cyan().into(),
+                ])
+                .build().unwrap();
+
             frame.render_widget(Clear, area); // clears out the background
+            frame.render_widget(Block::bordered()
+                                    .border_type(BorderType::Rounded)
+                                    .style(Style::default()
+                                        .fg(Color::Cyan)
+                                        .bg(Color::Black)), area);
+            frame.render_widget(lose_text, sections[1]);
             frame.render_widget(Paragraph::new(format!(
-                "You Lose!\n\
-                The word was '{}'\n\
+                "The word was '{}'\n\
                 Press `Esc` to quit", word))
-                                    .centered()
-                                    .block(Block::bordered()
-                                        .border_type(BorderType::Rounded)
-                                        .style(Style::default()
-                                            .fg(Color::Cyan)
-                                            .bg(Color::Black))), area);
+                                    .centered(), sections[2]);
         }
         _ => {}
     }
