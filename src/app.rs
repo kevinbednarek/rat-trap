@@ -1,6 +1,6 @@
+use rand::Rng;
 use std::error;
 use std::mem::replace;
-use rand::Rng;
 
 pub type AppResult<T> = Result<T, Box<dyn error::Error>>;
 
@@ -46,7 +46,8 @@ impl App {
         let letter = &c.to_string().to_ascii_uppercase();
         if self.guesses.contains(letter) {
             //Remove guess from list
-            self.guesses.retain(|x| *x != c.to_string().to_ascii_uppercase());
+            self.guesses
+                .retain(|x| *x != c.to_string().to_ascii_uppercase());
 
             if self.word.to_ascii_uppercase().contains(letter) {
                 let mut indices = Vec::new();
@@ -85,9 +86,18 @@ impl App {
 /*-------------------------------------- Helper Functions --------------------------------------*/
 fn init_word_and_hint(app: &mut App) {
     let word_list = vec![
-        (String::from("Rust"), String::from("The best programming language")),
-        (String::from("Ratatui"), String::from("A Rust library for cooking up delicious TUIs")),
-        (String::from("HashMap"), String::from("A data structure that holds key/value pairs")),
+        (
+            String::from("Rust"),
+            String::from("The best programming language"),
+        ),
+        (
+            String::from("Ratatui"),
+            String::from("A Rust library for cooking up delicious TUIs"),
+        ),
+        (
+            String::from("HashMap"),
+            String::from("A data structure that holds key/value pairs"),
+        ),
         //TODO: Add more words and hints
     ];
 
@@ -97,7 +107,6 @@ fn init_word_and_hint(app: &mut App) {
     let word_hint_pair = word_list.get(rnd_num);
     app.word = word_hint_pair.unwrap().clone().0;
     app.hint = word_hint_pair.unwrap().clone().1;
-
 
     //app.word = String::from("rust");
     //app.hint = String::from("The best programming language");

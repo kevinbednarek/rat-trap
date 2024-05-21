@@ -1,8 +1,14 @@
-use ratatui::{layout::Alignment, style::{Color, Style, Stylize as OtherStylize}, widgets::{*}, Frame, text};
+use crate::app::App;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::text::{Span, Text};
+use ratatui::{
+    layout::Alignment,
+    style::{Color, Style, Stylize as OtherStylize},
+    text,
+    widgets::*,
+    Frame,
+};
 use tui_big_text::{BigText, PixelSize};
-use crate::app::App;
 
 pub fn render(app: &mut App, frame: &mut Frame) {
     let sections = Layout::default()
@@ -25,16 +31,16 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         Constraint::Min(16),
         Constraint::Min(32),
     ])
-        .split(sections[1]);
+    .split(sections[1]);
 
     //Render widget for whole background. Make it black, give everything a border
-    frame.render_widget(Block::bordered()
-        .title(" Rat Trap ")
-        .title_alignment(Alignment::Center)
-        .border_type(BorderType::Rounded)
-        .style(Style::default()
-            .fg(Color::Cyan)
-            .bg(Color::Black)), frame.size(),
+    frame.render_widget(
+        Block::bordered()
+            .title(" Rat Trap ")
+            .title_alignment(Alignment::Center)
+            .border_type(BorderType::Rounded)
+            .style(Style::default().fg(Color::Cyan).bg(Color::Black)),
+        frame.size(),
     );
 
     //Render game instructions
@@ -77,31 +83,33 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         Constraint::Percentage(percent_y),
         Constraint::Percentage((100 - percent_y) / 2),
     ])
-        .split(r);
+    .split(r);
 
     Layout::horizontal([
         Constraint::Percentage((100 - percent_x) / 2),
         Constraint::Percentage(percent_x),
         Constraint::Percentage((100 - percent_x) / 2),
     ])
-        .split(popup_layout[1])[1]
+    .split(popup_layout[1])[1]
 }
 
 /*------------------------------ Frame Rendering Functions ------------------------------*/
 fn render_game_info(strikes: u8, r: Rect, frame: &mut Frame) {
     frame.render_widget(
-        Paragraph::new(format!("`Enter` for hint | `Esc` to quit\n\
+        Paragraph::new(format!(
+            "`Enter` for hint | `Esc` to quit\n\
                 Guess incorrectly 6 times and you lose!\n\
-                Incorrect guesses: {}", strikes)
+                Incorrect guesses: {}",
+            strikes
+        ))
+        .block(
+            Block::bordered()
+                .title(" Rat Trap ")
+                .title_alignment(Alignment::Center)
+                .border_type(BorderType::Rounded),
         )
-            .block(
-                Block::bordered()
-                    .title(" Rat Trap ")
-                    .title_alignment(Alignment::Center)
-                    .border_type(BorderType::Rounded),
-            )
-            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-            .centered(),
+        .style(Style::default().fg(Color::Cyan).bg(Color::Black))
+        .centered(),
         r,
     );
 }
@@ -110,25 +118,29 @@ fn render_letters(letters: &Vec<String>, r: Rect, frame: &mut Frame) {
     let mut displayed_guesses = Vec::new();
     for letter in letters.iter() {
         displayed_guesses.push(Span::from(letter.clone().red().bold()));
-    };
+    }
 
     let guesses = Text::from(text::Line::from(displayed_guesses));
 
-    frame.render_widget(Paragraph::new(guesses)
-                            .centered()
-                            .block(Block::bordered()
-                                .border_type(BorderType::Rounded))
-                            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-                            .centered(), r);
+    frame.render_widget(
+        Paragraph::new(guesses)
+            .centered()
+            .block(Block::bordered().border_type(BorderType::Rounded))
+            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
+            .centered(),
+        r,
+    );
 }
 
 fn render_hint(hint: &str, r: Rect, frame: &mut Frame) {
-    frame.render_widget(Paragraph::new("Hint: ".to_owned() + hint)
-                            .centered()
-                            .block(Block::bordered()
-                                .border_type(BorderType::Rounded))
-                            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-                            .centered(), r);
+    frame.render_widget(
+        Paragraph::new("Hint: ".to_owned() + hint)
+            .centered()
+            .block(Block::bordered().border_type(BorderType::Rounded))
+            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
+            .centered(),
+        r,
+    );
 }
 
 fn render_game_result(game_result: Option<bool>, word: &String, frame: &mut Frame) {
@@ -137,11 +149,7 @@ fn render_game_result(game_result: Option<bool>, word: &String, frame: &mut Fram
 
     let sections = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Min(3),
-            Constraint::Min(5),
-            Constraint::Min(3),
-        ])
+        .constraints([Constraint::Min(3), Constraint::Min(5), Constraint::Min(3)])
         .split(area);
 
     match game_result {
@@ -149,41 +157,48 @@ fn render_game_result(game_result: Option<bool>, word: &String, frame: &mut Fram
             let win_text = BigText::builder()
                 .alignment(Alignment::Center)
                 .pixel_size(PixelSize::Quadrant)
-                .lines(vec![
-                    "You Win!".cyan().into(),
-                ])
-                .build().unwrap();
+                .lines(vec!["You Win!".cyan().into()])
+                .build()
+                .unwrap();
 
             frame.render_widget(Clear, area); // clears out the background
-            frame.render_widget(Block::bordered()
-                                    .border_type(BorderType::Rounded)
-                                    .style(Style::default()
-                                        .fg(Color::Cyan)
-                                        .bg(Color::Black)), area);
+            frame.render_widget(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default().fg(Color::Cyan).bg(Color::Black)),
+                area,
+            );
             frame.render_widget(win_text, sections[1]);
-            frame.render_widget(Paragraph::new("Press `Esc` to quit")
-                                    .centered(), sections[2]);
+            frame.render_widget(
+                Paragraph::new("Press `Esc` to quit").centered(),
+                sections[2],
+            );
         }
         Some(false) => {
             let lose_text = BigText::builder()
                 .alignment(Alignment::Center)
                 .pixel_size(PixelSize::Quadrant)
-                .lines(vec![
-                    "You Lose!".cyan().into(),
-                ])
-                .build().unwrap();
+                .lines(vec!["You Lose!".cyan().into()])
+                .build()
+                .unwrap();
 
             frame.render_widget(Clear, area); // clears out the background
-            frame.render_widget(Block::bordered()
-                                    .border_type(BorderType::Rounded)
-                                    .style(Style::default()
-                                        .fg(Color::Cyan)
-                                        .bg(Color::Black)), area);
+            frame.render_widget(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default().fg(Color::Cyan).bg(Color::Black)),
+                area,
+            );
             frame.render_widget(lose_text, sections[1]);
-            frame.render_widget(Paragraph::new(format!(
-                "The word was '{}'\n\
-                Press `Esc` to quit", word))
-                                    .centered(), sections[2]);
+            frame.render_widget(
+                Paragraph::new(format!(
+                    "The word was '{}'\n\
+                Press `Esc` to quit",
+                    word
+                ))
+                .centered(),
+                sections[2],
+            );
         }
         _ => {}
     }
@@ -191,15 +206,18 @@ fn render_game_result(game_result: Option<bool>, word: &String, frame: &mut Fram
 
 fn draw_rat(r: Rect, frame: &mut Frame) {
     let rat = vec![
-        "      _____()()" .into(),
-        "     /       @@" .into(),
+        "      _____()() ".into(),
+        "     /       @@ ".into(),
         "~~~~~|_;m__m._>o".into(),
     ];
 
-    frame.render_widget(Paragraph::new(rat)
-                            .centered()
-                            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-                            .centered(), r);
+    frame.render_widget(
+        Paragraph::new(rat)
+            .centered()
+            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
+            .centered(),
+        r,
+    );
 }
 
 fn draw_trap(r: Rect, frame: &mut Frame) {
@@ -213,8 +231,11 @@ fn draw_trap(r: Rect, frame: &mut Frame) {
         "`----------'----------'`     ".into(),
     ];
 
-    frame.render_widget(Paragraph::new(trap)
-                            .centered()
-                            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
-                            .centered(), r);
+    frame.render_widget(
+        Paragraph::new(trap)
+            .centered()
+            .style(Style::default().fg(Color::Cyan).bg(Color::Black))
+            .centered(),
+        r,
+    );
 }
